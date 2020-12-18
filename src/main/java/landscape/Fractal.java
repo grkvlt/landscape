@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.awt.Color;
 import java.awt.BasicStroke;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.Polygon;
 import java.awt.image.BufferedImage;
 import java.util.Optional;
@@ -88,6 +89,9 @@ public class Fractal {
         int h = w;
         BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = image.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
 
         g.setBackground(Color.BLACK);
         g.setStroke(new BasicStroke(0.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));
