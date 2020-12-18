@@ -25,7 +25,7 @@
 
     <artifactId>landscape</artifactId>
     <groupId>landscape</groupId>
-    <version>0.2</version>
+    <version>0.3</version>
     <packaging>jar</packaging>
 
     <name>Landscape</name>

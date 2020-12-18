@@ -51,7 +51,7 @@ public class Constants {
     public static final String COPYRIGHT = "Copyright 2020 by Andrew Donald Kennedy";
 
     /** Version text */
-    public static final String VERSION = "Landscape 0.2";
+    public static final String VERSION = "Landscape 0.3";
 
     /** About text */
     public static final String ABOUT = VERSION + " / " + COPYRIGHT;
