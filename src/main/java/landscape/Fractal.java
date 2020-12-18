@@ -21,15 +21,22 @@
 package landscape;
 
 import static landscape.Constants.fileFormat;
+import static landscape.Constants.ICON_FILE;
 import static landscape.Utils.saveDir;
 import static landscape.Utils.save;
 import static landscape.Utils.RANDOM;
 
+import com.apple.eawt.Application;
+
+import java.io.InputStream;
 import java.awt.Color;
 import java.awt.BasicStroke;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.image.BufferedImage;
+import java.util.Optional;
+
+import javax.imageio.ImageIO;
 
 public class Fractal {
     public int iterations;
@@ -112,7 +119,9 @@ public class Fractal {
         System.out.printf("+ Fractal landscape generator - %s\n", Constants.VERSION);
         System.out.printf("+ %s\n", Constants.COPYRIGHT);
 
-        String fileName = "landscape";
+        setup();
+
+        String fileName = "fractal";
         int n = 100;
 
         // Parse arguments
@@ -133,5 +142,17 @@ public class Fractal {
             String saveName = save(image, fileFormat(), saveDir(), fileName);
             System.out.printf("> Saved image as %s\n", saveName);
         }
+
+    private static final void setup() {
+        // Set application icon
+        Optional<String> vendor = Optional.ofNullable(System.getProperty("os.name"));
+        vendor.filter(s -> s.toLowerCase().contains("mac")).ifPresent(s -> {
+            try (InputStream icon = Fractal.class.getResourceAsStream(ICON_FILE)) {
+                BufferedImage image = ImageIO.read(icon);
+                Application.getApplication().setDockIconImage(image);
+            } catch (Exception e) {
+                throw new RuntimeException("Unable to load icon file", e);
+            }
+        });
     }
 }
