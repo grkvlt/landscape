@@ -41,14 +41,16 @@ import javax.imageio.ImageIO;
 
 public class Fractal {
     public int iterations;
+    public double roughness;
 
-    public Fractal(int iterations) {
+    public Fractal(int iterations, double roughness) {
         this.iterations = iterations;
+        this.roughness = roughness;
     }
 
-    public double[][] generate() throws Exception {
+    public double[][] generate(int x, int y) throws Exception {
         int i = 0;
-        double points[][] = new double[2][2];
+        double points[][] = new double[x][y];
         while (i < iterations) {
             points = interpolate(points, ++i);
         }
@@ -56,18 +58,20 @@ public class Fractal {
     }
 
     public double[][] interpolate(double[][] input, int level) {
-        int size = input.length;
-        int os = (size - 1) * 2 + 1;
-        double output[][] = new double[os][os];
+        int ix = input.length;
+        int iy = input[0].length;
+        int ox = (ix - 1) * 2 + 1;
+        int oy = (iy - 1) * 2 + 1;
+        double output[][] = new double[ox][oy];
 
-        for (int x = 0; x < size; x++) {
-            for (int y = 0; y < size; y++) {
+        for (int x = 0; x < ix; x++) {
+            for (int y = 0; y < iy; y++) {
                 double p = input[x][y];
                 double o = p;
                 output[2*x][2*y] = o;
                 if (x > 0 && y > 0) {
                     double q = (input[x-1][y-1] + input[x-1][y] + input[x][y-1] + input[x][y]) / 4d;
-                    double r = RANDOM.nextGaussian() * (1d / (double) (level * level));
+                    double r = (RANDOM.nextDouble() - 0.5d) * Math.pow(level, -roughness);
                     o = q + r;
                     output[2*x - 1][2*y - 1] = o;
                 }
@@ -84,9 +88,11 @@ public class Fractal {
     }
 
     public BufferedImage render(double[][] points, double scale, double water, int z, int b) {
-        int size = points.length;
-        int w = (int) (scale * size) + (2 * b);
-        int h = w;
+        int sx = points.length;
+        int sy = points[0].length;
+        int w = (int) (scale * sx) + (2 * b);
+        int h = (int) (scale * sy) + (2 * b);
+        
         BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = image.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -94,25 +100,25 @@ public class Fractal {
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
 
         g.setBackground(Color.BLACK);
-        g.setStroke(new BasicStroke(0.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));
+        g.setStroke(new BasicStroke(2.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
         g.clearRect(0, 0, w, h);
 
-        for (int j = size - 1; j >= 0; j--) {
+        for (int j = sy - 1; j >= 0; j--) {
             Polygon line = new Polygon();
             int x = b, y = b;
-            for (int i = 0; i < size; i++) {
+            for (int i = 0; i < sx; i++) {
                 double p = points[i][j];
                 x = b + (int) (scale * i);
-                y = b + (int) (scale * (size - j)) + (int) (p * z);
+                y = b + (int) (scale * (sy - j)) + (int) (p * z);
                 line.addPoint(x, y);
             }
-            line.addPoint(x, b + (int) (scale * size));
-            line.addPoint(b, b + (int) (scale * size));
+            line.addPoint(x, b + (int) (scale * sy));
+            line.addPoint(b, b + (int) (scale * sy));
             g.setColor(Color.BLACK);
             g.setClip(0, 0, w, h - b);
             g.fillPolygon(line);
             g.setColor(Color.WHITE);
-            g.setClip(0, 0, w, Math.min(h - b, b + (int) (scale * (size - j)) + (int) (z * water)) - 1);
+            g.setClip(0, 0, w, Math.min(h - b, b + (int) (scale * (sy - j)) + (int) (z * water)) - 1);
             g.drawPolyline(line.xpoints, line.ypoints, line.npoints - 2);
         }
 
@@ -125,26 +131,36 @@ public class Fractal {
 
         setup();
 
-        String fileName = "fractal";
+        String prefix = "fractal";
         int n = 100;
+        int i = 6;
+        double r = 2d;
+        int w = 4;
+        int h = 3;
 
         // Parse arguments
         if (argv.length >= 1) {
-            n = Integer.valueOf(argv[0]);
+            r = Double.valueOf(argv[0]);
         }
         if (argv.length >= 2) {
-            fileName = argv[1];
+            n = Integer.valueOf(argv[1]);
+        }
+        if (argv.length >= 3) {
+            prefix = argv[2];
         }
 
-        Fractal landscape = new Fractal(8);
-        System.out.printf("- Running %d times for %d iteration\n", n, landscape.iterations);
-        for (int i = 0; i < n; i++) {
-            double[][] points = landscape.generate();
-            BufferedImage image = landscape.render(points, 8d, 0.8d - RANDOM.nextDouble(), 512, 100);
+        System.out.printf("- Running %d times with %d iterations\n", n, i);
+        Fractal landscape = new Fractal(i, r);
+        do {
+            if (argv.length == 0) landscape.roughness = 1.90d + (RANDOM.nextDouble() / 4d);
+            System.out.printf("- Generating landscape at %f roughness\n", landscape.roughness);
+            double[][] points = landscape.generate(w, h);
+            BufferedImage image = landscape.render(points, 10d, 0.8d - RANDOM.nextDouble(), 800, 0);
             System.out.printf("- Rendered %d points as %d x %d image\n",
                     points.length * points[0].length, image.getWidth(), image.getHeight());
-            String saveName = save(image, fileFormat(), saveDir(), fileName);
-            System.out.printf("> Saved image as %s\n", saveName);
+            String fileName = save(image, fileFormat(), saveDir(), prefix);
+            System.out.printf("> Saved image as %s\n", fileName);
+        } while (0 <-- n);
         }
 
     private static final void setup() {
