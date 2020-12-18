@@ -110,6 +110,7 @@ public class Fractal {
                 double p = points[i][j];
                 x = b + (int) (scale * i);
                 y = b + (int) (scale * (sy - j)) + (int) (p * z);
+                x += (RANDOM.nextDouble() - 0.5d) * scale; // Add x-axis jitter
                 line.addPoint(x, y);
             }
             line.addPoint(x, b + (int) (scale * sy));
