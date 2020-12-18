@@ -39,6 +39,12 @@ import java.util.Optional;
 
 import javax.imageio.ImageIO;
 
+/**
+ * Fractal Landscape Generator.
+ *
+ * Generates image files of random fractal landscapes, with various
+ * tuneable parameters, such as roughness and sea-level.
+ */
 public class Fractal {
     public int iterations;
     public double roughness;
@@ -48,6 +54,9 @@ public class Fractal {
         this.roughness = roughness;
     }
 
+    /**
+     * Generate a fractal landscape from initial array of zero height.
+     */
     public double[][] generate(int x, int y) throws Exception {
         int i = 0;
         double points[][] = new double[x][y];
@@ -57,6 +66,9 @@ public class Fractal {
         return points;
     }
 
+    /**
+     * Interpolate points with scaled random noise.
+     */
     public double[][] interpolate(double[][] input, int level) {
         int ix = input.length;
         int iy = input[0].length;
@@ -87,37 +99,50 @@ public class Fractal {
         return output;
     }
 
+    /**
+     * Render the landscape points as an image.
+     */
     public BufferedImage render(double[][] points, double scale, double water, int z, int b) {
+        // Set image size
         int sx = points.length;
         int sy = points[0].length;
         int w = (int) (scale * sx) + (2 * b);
         int h = (int) (scale * sy) + (2 * b);
         
+        // Create the image object and setup graphics environment with anti-aliasing
         BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = image.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
 
+        // Define the background colour and stroke format
         g.setBackground(Color.BLACK);
         g.setStroke(new BasicStroke(2.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
+
+        // Clear the image
         g.clearRect(0, 0, w, h);
 
         for (int j = sy - 1; j >= 0; j--) {
             Polygon line = new Polygon();
             int x = b, y = b;
             for (int i = 0; i < sx; i++) {
+                // Scale points to screen space for rendering
                 double p = points[i][j];
                 x = b + (int) (scale * i);
                 y = b + (int) (scale * (sy - j)) + (int) (p * z);
                 x += (RANDOM.nextDouble() - 0.5d) * scale; // Add x-axis jitter
                 line.addPoint(x, y);
             }
+
+            // Add extra points to the fill polygon for full z clipping
             line.addPoint(x, b + (int) (scale * sy));
             line.addPoint(b, b + (int) (scale * sy));
             g.setColor(Color.BLACK);
             g.setClip(0, 0, w, h - b);
             g.fillPolygon(line);
+
+            // Draw the landscape outline (without added points from above)
             g.setColor(Color.WHITE);
             g.setClip(0, 0, w, Math.min(h - b, b + (int) (scale * (sy - j)) + (int) (z * water)) - 1);
             g.drawPolyline(line.xpoints, line.ypoints, line.npoints - 2);
@@ -126,6 +151,14 @@ public class Fractal {
         return image;
     }
 
+    /**
+     * Main method for generator.
+     * 
+     * Parses arguments for configuration and initialises the class. Runs a loop
+     * to create multiple landscapes, by calling the {@link #generate(int, int)}
+     * method to create a landscape, then renders it as a {@link BufferedImage} which
+     * is saved to a file.
+     */
     public static void main(String[] argv) throws Exception {
         System.out.printf("+ Fractal landscape generator - %s\n", Constants.VERSION);
         System.out.printf("+ %s\n", Constants.COPYRIGHT);
@@ -162,7 +195,7 @@ public class Fractal {
             String fileName = save(image, fileFormat(), saveDir(), prefix);
             System.out.printf("> Saved image as %s\n", fileName);
         } while (0 <-- n);
-        }
+    }
 
     private static final void setup() {
         // Set application icon
