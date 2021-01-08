@@ -83,7 +83,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Main-class>landscape.Fractal</Main-class>
+                            <Main-class>landscape.Images</Main-class>
                         </manifestEntries>
                     </archive>
                 </configuration>

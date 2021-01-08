@@ -20,48 +20,36 @@
  */
 package landscape;
 
-import static landscape.Constants.fileFormat;
-import static landscape.Constants.ICON_FILE;
-import static landscape.Utils.saveDir;
-import static landscape.Utils.save;
 import static landscape.Utils.RANDOM;
 
-import com.apple.eawt.Application;
-
-import java.io.InputStream;
 import java.awt.Color;
 import java.awt.BasicStroke;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Polygon;
 import java.awt.image.BufferedImage;
-import java.util.Optional;
-
-import javax.imageio.ImageIO;
 
 /**
  * Fractal Landscape Generator.
  *
- * Generates image files of random fractal landscapes, with various
+ * Generates random fractal landscapes, with various
  * tuneable parameters, such as roughness and sea-level.
  */
 public class Fractal {
     public int iterations;
-    public double roughness;
 
-    public Fractal(int iterations, double roughness) {
+    public Fractal(int iterations) {
         this.iterations = iterations;
-        this.roughness = roughness;
     }
 
     /**
      * Generate a fractal landscape from initial array of zero height.
      */
-    public double[][] generate(int x, int y) throws Exception {
+    public double[][] generate(double roughness, int w, int h) throws Exception {
         int i = 0;
-        double points[][] = new double[x][y];
+        double points[][] = new double[w][h];
         while (i < iterations) {
-            points = interpolate(points, ++i);
+            points = interpolate(points, roughness, ++i);
         }
         return points;
     }
@@ -69,7 +57,7 @@ public class Fractal {
     /**
      * Interpolate points with scaled random noise.
      */
-    public double[][] interpolate(double[][] input, int level) {
+    private double[][] interpolate(double[][] input, double roughness, int level) {
         int ix = input.length;
         int iy = input[0].length;
         int ox = (ix - 1) * 2 + 1;
@@ -98,6 +86,74 @@ public class Fractal {
 
         return output;
     }
+    
+    /**
+     * Differentiate height map into gradient map.
+     */
+    public double[][] differentiate(double[][] input) {
+        int ix = input.length;
+        int iy = input[0].length;
+        double output[][] = new double[ix][iy];
+
+        for (int x = 0; x < ix; x++) {
+            for (int y = 0; y < iy; y++) {
+                double o = 0d;
+                if (x > 0 && y > 0) {
+                    double p = input[x][y];
+                    double w = input[x-1][y] - p;
+                    double nw = input[x-1][y-1] - p;
+                    double n = input[x][y-1] - p;
+                    o = (w + nw + n) / 3d;
+                }
+                output[x][y] = o;
+            }
+        }
+
+        return output;
+    }
+    
+    /**
+     * Apply smoothing filter iteratively.
+     */
+    public double[][] smooth(double[][] heights, double[][] gradient, double threshold, int iterations) {
+        int ix = heights.length;
+        int iy = heights[0].length;
+        double output[][] = new double[ix][iy];
+        double input[][] = heights;
+        int n = iterations;
+
+        do {
+            output = filter(input, gradient, threshold);
+            input = output;
+        } while (n --> 0);
+
+        return output;
+    }
+
+    /**
+     * Low pass filter height map based on gradient threshold.
+     */
+    private double[][] filter(double[][] input, double[][] gradient, double threshold) {
+        int ix = input.length;
+        int iy = input[0].length;
+        double output[][] = new double[ix][iy];
+
+        for (int x = 0; x < ix; x++) {
+            for (int y = 0; y < iy; y++) {
+                double p = input[x][y];
+                double o = p;
+                if (x > 0 && y > 0) {
+                    double q = gradient[x][y];
+                    if (Math.abs(q * 100d) < threshold) {
+                        o = (input[x-1][y] + input[x-1][y-1] + input[x][y-1] + p) / 4d;
+                    }
+                }
+                output[x][y] = o;
+            }
+        }
+
+        return output;
+    }
 
     /**
      * Render the landscape points as an image.
@@ -114,7 +170,6 @@ public class Fractal {
         Graphics2D g = image.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
 
         // Define the background colour and stroke format
         g.setBackground(Color.BLACK);
@@ -152,61 +207,54 @@ public class Fractal {
     }
 
     /**
-     * Main method for generator.
-     * 
-     * Parses arguments for configuration and initialises the class. Runs a loop
-     * to create multiple landscapes, by calling the {@link #generate(int, int)}
-     * method to create a landscape, then renders it as a {@link BufferedImage} which
-     * is saved to a file.
+     * Plot the landscape as a shaded map based on gradient.
      */
-    public static void main(String[] argv) throws Exception {
-        System.out.printf("+ Fractal landscape generator - %s\n", Constants.VERSION);
-        System.out.printf("+ %s\n", Constants.COPYRIGHT);
+    public BufferedImage plot(double[][] points, double[][] gradient, double scale, double water, double threshold) {
+        // Set image size
+        int sx = points.length;
+        int sy = points[0].length;
+        int s = (int) scale;
+        int w = s * sx;
+        int h = s * sy;
+        
+        // Create the image object and setup graphics environment
+        BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = image.createGraphics();
 
-        setup();
+        // Define the background colour
+        g.setBackground(Color.BLACK);
 
-        String prefix = "fractal";
-        int n = 100;
-        int i = 6;
-        double r = 2d;
-        int w = 4;
-        int h = 3;
+        // Clear the image
+        g.clearRect(0, 0, w, h);
 
-        // Parse arguments
-        if (argv.length >= 1) {
-            r = Double.valueOf(argv[0]);
-        }
-        if (argv.length >= 2) {
-            n = Integer.valueOf(argv[1]);
-        }
-        if (argv.length >= 3) {
-            prefix = argv[2];
-        }
+        for (int j = 0; j < sy; j++) {
+            int x, y;
+            for (int i = 0; i < sx; i++) {
+                double p = points[i][j];
+                double q = Math.abs(gradient[i][j] * 100d);
+                int c = Math.min(255, (int) (q * 255d));
+                x = (int) (scale * i);
+                y = (int) (scale * j);
+                if (p < water) {
+                    // Set clipping box
+                    Polygon box = new Polygon();
+                    box.addPoint(x, y);
+                    box.addPoint(x, y + s);
+                    box.addPoint(x + s, y + s);
+                    box.addPoint(x + s, y);
+                    g.setClip(box);
 
-        System.out.printf("- Running %d times with %d iterations\n", n, i);
-        Fractal landscape = new Fractal(i, r);
-        do {
-            if (argv.length == 0) landscape.roughness = 1.90d + (RANDOM.nextDouble() / 4d);
-            System.out.printf("- Generating landscape at %f roughness\n", landscape.roughness);
-            double[][] points = landscape.generate(w, h);
-            BufferedImage image = landscape.render(points, 10d, 0.8d - RANDOM.nextDouble(), 800, 0);
-            System.out.printf("- Rendered %d points as %d x %d image\n",
-                    points.length * points[0].length, image.getWidth(), image.getHeight());
-            String fileName = save(image, fileFormat(), saveDir(), prefix);
-            System.out.printf("> Saved image as %s\n", fileName);
-        } while (0 <-- n);
-    }
-
-    private static final void setup() {
-        // Set application icon
-        Optional<String> vendor = Optional.ofNullable(System.getProperty("os.name"));
-        vendor.filter(s -> s.toLowerCase().contains("mac")).ifPresent(s -> {
-            try (InputStream icon = Fractal.class.getResourceAsStream(ICON_FILE)) {
-                BufferedImage image = ImageIO.read(icon);
-                Application.getApplication().setDockIconImage(image);
-            } catch (Exception e) {
-                throw new RuntimeException("Unable to load icon file", e);
+                    // Plot pixel
+                    if (q < threshold) {
+                        g.setColor(Utils.color(0, c, c / 2));
+                    } else {
+                        g.setColor(Utils.color(c, c, c));
+                    }
+                    g.fillArc(x - s, y - s, s * 3, s * 3, 0, 360);
+                }
             }
-        });
+        }
+
+        return image;
     }
 }
