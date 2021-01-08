@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  * 
- * Copyright 2020 by Andrew Donald Kennedy
+ * Copyright 2020-2021 by Andrew Donald Kennedy
  */
 package landscape;
 
@@ -48,7 +48,7 @@ public class Constants {
     public static final Set<String> FILE_FORMATS = Set.of(PNG, JPEG, TIFF);
     
     /** Copyright text */
-    public static final String COPYRIGHT = "Copyright 2020 by Andrew Donald Kennedy";
+    public static final String COPYRIGHT = "Copyright 2020-2021 by Andrew Donald Kennedy";
 
     /** Version text */
     public static final String VERSION = "Landscape 0.3";
