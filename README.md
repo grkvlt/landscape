@@ -29,6 +29,8 @@ Future plans include implementing a more sophisticated renderer
 with perspective, and displaying the output as a real-time fly-through
 of the landscape...
 
+<div class="page" />
+
 ## Usage
 
 The program requires at least Java 8 with a Maven installation. It
@@ -48,7 +50,7 @@ for:
 $ mvn clean install
 [INFO] Scanning for projects...
 [INFO] 
-[INFO] ------------------------< landscape:landscape >-------------------------
+[INFO] ------------< landscape:landscape >------------
 [INFO] Building Landscape 0.4
 ...
 $ java -jar ./target/landscape-0.4.jar 2.174
@@ -87,15 +89,17 @@ defined in the `Images.java` [2] file.
 double[][] points = landscape.generate(r, w, h);
 
 // Differentiate height map
-double[][] gradient = landscape.differentiate(points);
+double[][] grad = landscape.differentiate(points);
 
 // Smooth height map
-double[][] smoothed = landscape.smooth(points, gradient, t, fi);
+double[][] smooth = landscape.smooth(points, grad, t, fi);
 
 // Render and save image
-BufferedImage image = landscape.render(smoothed, scale, water, z, b);
-String fileName = save(image, "PNG", ".", "landscape");
+BufferedImage image = landscape.render(smooth, scale, water, z, b);
+String file = save(image, "PNG", ".", "landscape");
 ```
+
+<div class="page" />
 
 ## References
 
@@ -107,17 +111,17 @@ Algorithm_ are also useful, and searching for this or _Midpoint
 Displacement_ should result in many blog posts and articles suitable
 for providing further inspiration.
 
-- _Peitgen, Heinz-Otto_; _Dietmar, Saupe_ (1988).
-  **The Science of Fractal Images**
-  New York: Springer-Verlag.
+- _Peitgen, Heinz-Otto_; _Dietmar, Saupe_ (1988).  
+  **The Science of Fractal Images**  
+  New York: Springer-Verlag.  
   ISBN [978-0-387-96608-3](https://www.springer.com/gb/book/9781461283492)
-- _Fournier, Alain_; _Fussell, Don_; _Carpenter, Loren_ (June 1982).
-  **Computer Rendering of Stochastic Models**
-  Communications of the ACM. 25 (6): 371–384.
+- _Fournier, Alain_; _Fussell, Don_; _Carpenter, Loren_ (June 1982).  
+  **Computer Rendering of Stochastic Models**  
+  Communications of the ACM. 25 (6): 371–384.  
   DOI [10.1145/358523.358553](https://doi.org/10.1145%2F358523.358553)
-- _Miller, G. S. P._ (1986).
-  **The Definition and Rendering of Terrain Maps**
-  ACM SIGGRAPH Computer Graphics, 20(4), 39–48.
+- _Miller, G. S. P._ (1986).  
+  **The Definition and Rendering of Terrain Maps**  
+  ACM SIGGRAPH Computer Graphics, 20(4), 39–48.  
   DOI [10.1145/15886.15890](https://doi.org/10.1145%2F15886.15890)
 
 [1]: https://en.wikipedia.org/wiki/Diamond-square_algorithm
