@@ -1,4 +1,4 @@
-LANDSCAPE 0.3
+LANDSCAPE 0.4
 =============
 
 Fractal landscape generator written in Java.
