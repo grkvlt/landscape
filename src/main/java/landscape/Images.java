@@ -76,7 +76,7 @@ public class Images {
             prefix = argv[2];
         }
 
-        System.out.printf("- Running %d times\n", n);
+        if (n > 1) System.out.printf("- Running %d times\n", n);
         Fractal landscape = new Fractal(gi);
         BufferedImage image;
         String fileName;
@@ -84,7 +84,7 @@ public class Images {
             // Configure landscape properties
             if (argv.length == 0) r = 2d + (RANDOM.nextDouble() / 4d);
             double water = 0.8d - RANDOM.nextDouble();
-            System.out.printf("- Using %0.3f roughness and water %0.3f\n", r, water);
+            System.out.printf("- Using %.3f roughness and water %.3f\n", r, water);
 
             // Generate height map
             System.out.printf("- Generating landscape over %d iterations\n", gi);
@@ -104,7 +104,7 @@ public class Images {
             System.out.printf("> Saved plot as %s\n", fileName);
 
             // Smooth height map
-            System.out.printf("- Filtering points %d times with threshold %0.3f\n", fi, t);
+            System.out.printf("- Filtering points %d times with threshold %.3f\n", fi, t);
             double[][] smoothed = landscape.smooth(points, gradient, t, fi);
             image = landscape.render(smoothed, scale, water, z, b);
             fileName = save(image, fileFormat(), saveDir(), prefix + "-smooth");
