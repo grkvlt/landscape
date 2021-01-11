@@ -22,6 +22,7 @@ package landscape;
 
 import static landscape.Constants.ICON_FILE;
 import static landscape.Utils.RANDOM;
+import static landscape.Utils.saveDir;
 
 import com.apple.eawt.Application;
 
@@ -41,7 +42,7 @@ public class FlyOver implements Thread.UncaughtExceptionHandler {
     private boolean display = true;
 
     // Save location
-    private String directory = "./flyover";
+    private String directory = saveDir() + "/flyover";
     private String prefix = "frame";
 
     // Configure landscape properties
