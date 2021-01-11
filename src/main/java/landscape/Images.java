@@ -38,32 +38,75 @@ import javax.imageio.ImageIO;
  * Generates image files of fractal landscapes.
  */
 public class Images {
+
+    private String prefix = "fractal";
+    private int n = 10; // Number of images
+
+    private int z = 800; // Z-axis height
+    private int b = 50; // Border width
+    private double scale = 10d; // Scale multiplier
+
+    private int gi = 6; // Generator iterations
+    private double r = 2d + (RANDOM.nextDouble() / 4d); // Roughness
+    private int fi = 5; // Filter iterations
+    private double t = 0.9d; // Filter threshold
+    private int w = 4, h = 3; // Initial grid
+    private double water = 0.8d - RANDOM.nextDouble(); // Water level
+
+    private Fractal landscape = new Fractal(gi);
+    private Renderer render = new Renderer();
+    private BufferedImage image;
+    private String fileName;
+
     /**
-     * Main method for generator.
+     * Fractal landscape image generator.
      * 
-     * Parses arguments for configuration and initialises the class. Runs a loop
-     * to create multiple landscapes, by calling the {@link #generate(int, int)}
+     * Runs a loop to create multiple landscapes, by calling the {@link #generate(int, int)}
      * method to create a landscape, then renders it as a {@link BufferedImage} which
      * is saved to a file.
      */
-    public static void main(String[] argv) throws Exception {
-        System.out.printf("+ Fractal landscape generator - %s\n", Constants.VERSION);
-        System.out.printf("+ %s\n", Constants.COPYRIGHT);
+    public void run() throws Exception {
+        if (n > 1) System.out.printf("- Running %d times\n", n);
+        System.out.printf("- Using %.3f roughness and water %.3f\n", r, water);
 
-        setup();
+        do {
+            // Generate height map
+            System.out.printf("- Generating landscape over %d iterations\n", gi);
+            double[][] points = landscape.generate(r, w, h);
+            System.out.printf("+ Generated %d points\n", points.length * points[0].length);
+            image = render.image(points, scale, water, z, b);
+            System.out.printf("+ Rendered as %d x %d image\n", image.getWidth(), image.getHeight());
+            fileName = save(image, fileFormat(), saveDir(), prefix);
+            System.out.printf("> Saved image as %s\n", fileName);
 
-        String prefix = "fractal";
-        int n = 10; // Number of images
+            // Differentiate height map
+            System.out.printf("- Differentiating points\n");
+            double[][] gradient = landscape.differentiate(points);
+            image = render.plot(points, gradient, scale / 2, water, t);
+            System.out.printf("+ Plotted %d x %d image\n", image.getWidth(), image.getHeight());
+            fileName = save(image, fileFormat(), saveDir(), prefix + "-map");
+            System.out.printf("> Saved plot as %s\n", fileName);
 
-        int z = 800; // Z-axis height
-        int b = 50; // Border width
-        double scale = 10d; // Scale multiplier
+            // Smooth height map
+            System.out.printf("- Filtering points %d times with threshold %.3f\n", fi, t);
+            double[][] smoothed = landscape.smooth(points, gradient, t, fi);
+            image = render.image(smoothed, scale, water, z, b);
+            fileName = save(image, fileFormat(), saveDir(), prefix + "-smooth");
+            System.out.printf("> Saved image as %s\n", fileName);
+        } while (0 <-- n);
+    }
 
-        int gi = 6; // Generator iterations
-        double r = 2d; // Roughness
-        int fi = 5; // Filter iterations
-        double t = 0.9d; // Filter threshold
-        int w = 4, h = 3; // Initial grid
+    private void setup(String[] argv) {
+        // Set application icon
+        Optional<String> vendor = Optional.ofNullable(System.getProperty("os.name"));
+        vendor.filter(s -> s.toLowerCase().contains("mac")).ifPresent(s -> {
+            try (InputStream icon = Fractal.class.getResourceAsStream(ICON_FILE)) {
+                BufferedImage image = ImageIO.read(icon);
+                Application.getApplication().setDockIconImage(image);
+            } catch (Exception e) {
+                throw new RuntimeException("Unable to load icon file", e);
+            }
+        });
 
         // Parse arguments
         if (argv.length >= 1) {
@@ -75,53 +118,19 @@ public class Images {
         if (argv.length >= 3) {
             prefix = argv[2];
         }
-
-        if (n > 1) System.out.printf("- Running %d times\n", n);
-        Fractal landscape = new Fractal(gi);
-        BufferedImage image;
-        String fileName;
-        do {
-            // Configure landscape properties
-            if (argv.length == 0) r = 2d + (RANDOM.nextDouble() / 4d);
-            double water = 0.8d - RANDOM.nextDouble();
-            System.out.printf("- Using %.3f roughness and water %.3f\n", r, water);
-
-            // Generate height map
-            System.out.printf("- Generating landscape over %d iterations\n", gi);
-            double[][] points = landscape.generate(r, w, h);
-            System.out.printf("+ Generated %d points\n", points.length * points[0].length);
-            image = landscape.render(points, scale, water, z, b);
-            System.out.printf("+ Rendered as %d x %d image\n", image.getWidth(), image.getHeight());
-            fileName = save(image, fileFormat(), saveDir(), prefix);
-            System.out.printf("> Saved image as %s\n", fileName);
-
-            // Differentiate height map
-            System.out.printf("- Differentiating points\n");
-            double[][] gradient = landscape.differentiate(points);
-            image = landscape.plot(points, gradient, scale / 2, water, t);
-            System.out.printf("+ Plotted %d x %d image\n", image.getWidth(), image.getHeight());
-            fileName = save(image, fileFormat(), saveDir(), prefix + "-map");
-            System.out.printf("> Saved plot as %s\n", fileName);
-
-            // Smooth height map
-            System.out.printf("- Filtering points %d times with threshold %.3f\n", fi, t);
-            double[][] smoothed = landscape.smooth(points, gradient, t, fi);
-            image = landscape.render(smoothed, scale, water, z, b);
-            fileName = save(image, fileFormat(), saveDir(), prefix + "-smooth");
-            System.out.printf("> Saved image as %s\n", fileName);
-        } while (0 <-- n);
     }
 
-    private static final void setup() {
-        // Set application icon
-        Optional<String> vendor = Optional.ofNullable(System.getProperty("os.name"));
-        vendor.filter(s -> s.toLowerCase().contains("mac")).ifPresent(s -> {
-            try (InputStream icon = Fractal.class.getResourceAsStream(ICON_FILE)) {
-                BufferedImage image = ImageIO.read(icon);
-                Application.getApplication().setDockIconImage(image);
-            } catch (Exception e) {
-                throw new RuntimeException("Unable to load icon file", e);
-            }
-        });
+    /**
+     * Entrypoint.
+     */
+    public static void main(String[] argv) throws Exception {
+        System.out.printf("+ Fractal landscape images - %s\n", Constants.VERSION);
+        System.out.printf("+ %s\n", Constants.COPYRIGHT);
+
+        // Run flyover generator
+        Images images = new Images();
+        images.setup(argv);
+        images.run();
+        System.exit(0);
     }
 }

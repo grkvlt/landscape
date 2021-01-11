@@ -65,8 +65,8 @@ public class Utils {
     /**
      * Save an {@link BufferedImage image} to a file in a directory.
      * 
-     * The image will be saved in a file with a name formatted as {@code prefix-000.png}
-     * where the number {@literal 000} is a monotonically increasing integer that
+     * The image will be saved in a file with a name formatted as {@code prefix-0000.png}
+     * where the number {@literal 0000} is a monotonically increasing integer that
      * should ensure the file is unique, and the extension {@literal png} is an example
      * of one of the possible formats the image data can be written as.
      * 
@@ -81,7 +81,7 @@ public class Utils {
         String file = "";
 
         do {
-            file = String.format("%s-%03d.%s", prefix, id++, format.toLowerCase());
+            file = String.format("%s-%04d.%s", prefix, id++, format.toLowerCase());
         } while (Files.exists(Path.of(directory, file)));
 
         try {
@@ -147,5 +147,23 @@ public class Utils {
 
     public static void beep() {
         Toolkit.getDefaultToolkit().beep();
+    }
+
+    public static void sleep(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException ie) {
+            Thread.interrupted();
+        }
+    }
+
+    public static void sleep(long millis, Runnable action) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException ie) {
+            Thread.interrupted();
+        } finally {
+            action.run();
+        }
     }
 }
