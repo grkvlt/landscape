@@ -13,6 +13,7 @@ DIR="${HOME}/Landscape"
 RESOLUTION="1024x512"
 FPS="15"
 VERSION="0.5-SNAPSHOT"
+DISPLAY_FRAMES="false"
 
 # Create directory
 target="${DIR}/${NAME}"
@@ -26,7 +27,7 @@ video="${target}-${next}.mp4"
 # Execute Java code to render landscape frames
 if [ ! -f "${target}/frame-0000.png" ] ; then
     echo "- Generating PNG landscape files"
-    time java -cp ./target/landscape-${VERSION}.jar landscape.FlyOver false
+    time java -cp ./target/landscape-${VERSION}.jar landscape.FlyOver ${DISPLAY_FRAMES}
 else
     echo "- Landscape PNG files already rendered"
 fi

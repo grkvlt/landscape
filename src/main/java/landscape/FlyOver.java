@@ -20,26 +20,22 @@
  */
 package landscape;
 
-import static landscape.Constants.ICON_FILE;
+import static landscape.Constants.DISPLAY_FRAMES_KEY;
 import static landscape.Utils.RANDOM;
+import static landscape.Utils.propertyFlag;
+import static landscape.Utils.setApplicationIcon;
 import static landscape.Utils.saveDir;
 
-import com.apple.eawt.Application;
-
-import java.io.InputStream;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.Optional;
 
-import javax.imageio.ImageIO;
-
 /**
  * Generates a fly-through animation of a fractal landscape.
  */
-public class FlyOver implements Thread.UncaughtExceptionHandler {
-
-    // Display frames
-    private boolean display = true;
+public class FlyOver implements Thread.UncaughtExceptionHandler, Runnable {
+    // Display frames while rendering
+    private boolean display = propertyFlag(DISPLAY_FRAMES_KEY, true);
 
     // Save location
     private String directory = saveDir() + "/flyover";
@@ -70,7 +66,8 @@ public class FlyOver implements Thread.UncaughtExceptionHandler {
     /**
      * Generate flyover animation.
      */
-    public void run() throws Exception {
+    @Override
+    public void run() {
         // Generate height map
         System.out.printf("- Generating landscape over %d iterations\n", gi);
         System.out.printf("- Using %.3f roughness and water %.3f\n", r, water);
@@ -90,13 +87,14 @@ public class FlyOver implements Thread.UncaughtExceptionHandler {
 
         // Render frames
         int max = (int) ((h - 1) * Math.pow(2, gi)) - 1;
+        if (max <= 200) throw new RuntimeException(String.format("No frames to display? Found %d", max - 200));
         BufferedImage frame = null;
         int n = 0;
         for (int i = 50; i < max - 150; i++, n++) {
             frame = render.image(smoothed, i, i + 120, scale, water, z, b);
 
             // Display, save and pause
-            if (display) {
+            if (display && og.isPresent()) {
                 screen.display(og.get(), frame);
             } else {
                 System.out.printf("- Rendered frame %04d\r", n);
@@ -122,16 +120,7 @@ public class FlyOver implements Thread.UncaughtExceptionHandler {
     }
 
     private void setup(String[] argv) {
-        // Set application icon
-        Optional<String> vendor = Optional.ofNullable(System.getProperty("os.name"));
-        vendor.filter(s -> s.toLowerCase().contains("mac")).ifPresent(s -> {
-            try (InputStream icon = Fractal.class.getResourceAsStream(ICON_FILE)) {
-                BufferedImage image = ImageIO.read(icon);
-                Application.getApplication().setDockIconImage(image);
-            } catch (Exception e) {
-                throw new RuntimeException("Unable to load icon file", e);
-            }
-        });
+        setApplicationIcon();
 
         // Parse arguments
         if (argv.length > 0) {
@@ -148,7 +137,7 @@ public class FlyOver implements Thread.UncaughtExceptionHandler {
     /**
      * Entrypoint.
      */
-    public static void main(String[] argv) throws Exception {
+    public static void main(String[] argv) {
         System.out.printf("+ Fractal landscape flyover - %s\n", Constants.VERSION);
         System.out.printf("+ %s\n", Constants.COPYRIGHT);
 

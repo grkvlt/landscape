@@ -21,35 +21,31 @@
 package landscape;
 
 import static landscape.Constants.fileFormat;
-import static landscape.Constants.ICON_FILE;
+import static landscape.Constants.SAVE_ALL_KEY;
+import static landscape.Utils.propertyFlag;
+import static landscape.Utils.setApplicationIcon;
 import static landscape.Utils.saveDir;
 import static landscape.Utils.save;
 import static landscape.Utils.RANDOM;
 
-import com.apple.eawt.Application;
-
-import java.io.InputStream;
 import java.awt.image.BufferedImage;
-import java.util.Optional;
-
-import javax.imageio.ImageIO;
 
 /**
- * Generates image files of fractal landscapes.
+ * Generates images of multiple fractal landscapes.
  */
-public class Images {
-
+public class Images implements Runnable {
     private String prefix = "fractal";
     private int n = 10; // Number of images
+    private boolean saveAll = propertyFlag(SAVE_ALL_KEY, false);
 
-    private int z = 800; // Z-axis height
-    private int b = 50; // Border width
-    private double scale = 10d; // Scale multiplier
+    private int z = 600; // Z-axis height
+    private int b = 0; // Border width
+    private double scale = 12d; // Scale multiplier
 
     private int gi = 6; // Generator iterations
     private double r = 2d + (RANDOM.nextDouble() / 4d); // Roughness
-    private int fi = 5; // Filter iterations
-    private double t = 0.9d; // Filter threshold
+    private int fi = 4; // Filter iterations
+    private double t = 0.8d; // Filter threshold
     private int w = 4, h = 3; // Initial grid
     private double water = 0.8d - RANDOM.nextDouble(); // Water level
 
@@ -59,13 +55,15 @@ public class Images {
     private String fileName;
 
     /**
-     * Fractal landscape image generator.
+     * Multiple fractal landscape image generator.
      * 
-     * Runs a loop to create multiple landscapes, by calling the {@link #generate(int, int)}
-     * method to create a landscape, then renders it as a {@link BufferedImage} which
-     * is saved to a file.
+     * Runs a loop to create multiple landscapes, by calling the {@link Fractal#generate(double, int, int)}
+     * method to create a landscape, then renders it as a {@link BufferedImage} which is saved to a file.
+     * Additional images of the unfiltered landscape and the gradient map will also be saved if the
+     * {@code images.save.all} property is set.
      */
-    public void run() throws Exception {
+    @Override
+    public void run() {
         if (n > 1) System.out.printf("- Running %d times\n", n);
         System.out.printf("- Using %.3f roughness and water %.3f\n", r, water);
 
@@ -74,46 +72,42 @@ public class Images {
             System.out.printf("- Generating landscape over %d iterations\n", gi);
             double[][] points = landscape.generate(r, w, h);
             System.out.printf("+ Generated %d points\n", points.length * points[0].length);
-            image = render.image(points, scale, water, z, b);
-            System.out.printf("+ Rendered as %d x %d image\n", image.getWidth(), image.getHeight());
-            fileName = save(image, fileFormat(), saveDir(), prefix);
-            System.out.printf("> Saved image as %s\n", fileName);
+            if (saveAll) {
+                image = render.image(points, scale, water, z, b);
+                System.out.printf("+ Rendered as %d x %d image\n", image.getWidth(), image.getHeight());
+                fileName = save(image, fileFormat(), saveDir(), prefix + "-base");
+                System.out.printf("> Saved image as %s\n", fileName);
+            }
 
             // Differentiate height map
             System.out.printf("- Differentiating points\n");
             double[][] gradient = landscape.differentiate(points);
-            image = render.plot(points, gradient, scale / 2, water, t);
-            System.out.printf("+ Plotted %d x %d image\n", image.getWidth(), image.getHeight());
-            fileName = save(image, fileFormat(), saveDir(), prefix + "-map");
-            System.out.printf("> Saved plot as %s\n", fileName);
+            if (saveAll) {
+                image = render.plot(points, gradient, scale / 2, water, t);
+                System.out.printf("+ Plotted %d x %d image\n", image.getWidth(), image.getHeight());
+                fileName = save(image, fileFormat(), saveDir(), prefix + "-map");
+                System.out.printf("> Saved plot as %s\n", fileName);
+            }
 
             // Smooth height map
             System.out.printf("- Filtering points %d times with threshold %.3f\n", fi, t);
             double[][] smoothed = landscape.smooth(points, gradient, t, fi);
             image = render.image(smoothed, scale, water, z, b);
-            fileName = save(image, fileFormat(), saveDir(), prefix + "-smooth");
+            System.out.printf("+ Rendered as %d x %d image\n", image.getWidth(), image.getHeight());
+            fileName = save(image, fileFormat(), saveDir(), prefix);
             System.out.printf("> Saved image as %s\n", fileName);
         } while (0 <-- n);
     }
 
     private void setup(String[] argv) {
-        // Set application icon
-        Optional<String> vendor = Optional.ofNullable(System.getProperty("os.name"));
-        vendor.filter(s -> s.toLowerCase().contains("mac")).ifPresent(s -> {
-            try (InputStream icon = Fractal.class.getResourceAsStream(ICON_FILE)) {
-                BufferedImage image = ImageIO.read(icon);
-                Application.getApplication().setDockIconImage(image);
-            } catch (Exception e) {
-                throw new RuntimeException("Unable to load icon file", e);
-            }
-        });
+        setApplicationIcon();
 
         // Parse arguments
         if (argv.length >= 1) {
-            r = Double.valueOf(argv[0]);
+            r = Double.parseDouble(argv[0]);
         }
         if (argv.length >= 2) {
-            n = Integer.valueOf(argv[1]);
+            n = Integer.parseInt(argv[1]);
         }
         if (argv.length >= 3) {
             prefix = argv[2];
@@ -123,7 +117,7 @@ public class Images {
     /**
      * Entrypoint.
      */
-    public static void main(String[] argv) throws Exception {
+    public static void main(String[] argv) {
         System.out.printf("+ Fractal landscape images - %s\n", Constants.VERSION);
         System.out.printf("+ %s\n", Constants.COPYRIGHT);
 

@@ -25,7 +25,7 @@ import static landscape.Utils.propertyFlag;
 import java.util.Set;
 
 /**
- * Configuration and system property constant definitiomns.
+ * Configuration and system property constant definitions.
  */
 public class Constants {
     // Properties for global runtime configuration
@@ -33,14 +33,16 @@ public class Constants {
     public static final String SEED_KEY = "landscape.seed";
     public static final String SAVE_DIR_KEY = "landscape.save.dir";
     public static final String FILE_FORMAT_KEY = "landscape.save.format";
+    public static final String SAVE_ALL_KEY = "images.save.all";
+    public static final String DISPLAY_FRAMES_KEY = "flyover.display";
 
-    /** Default save directory in {@code user.home} */
+    /** Default save directory name. */
     public static final String SAVE_DIR = "Landscape";
 
-    /** Application  icon resource path */
+    /** Application icon resource path. */
     public static final String ICON_FILE = "/icon.png";
 
-    /** Debugging enable */
+    /** Debugging enable. */
     public static final Boolean DEBUG = propertyFlag(DEBUG_KEY, false);
 
     // Image save formats
@@ -56,6 +58,7 @@ public class Constants {
     /** About text. */
     public static final String ABOUT = VERSION + " / " + COPYRIGHT;
 
+    /** The file format to use when {@link Utils#save saving}. */
     public static String fileFormat() {
         String format = System.getProperty(FILE_FORMAT_KEY, PNG);
         if (!FILE_FORMATS.contains(format)) {

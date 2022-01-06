@@ -36,7 +36,6 @@ import java.awt.image.BufferedImage;
  * styles.
  */
 public class Renderer {
-
     private boolean jitter;
     private int overscan;
 
@@ -81,7 +80,7 @@ public class Renderer {
 
         for (int j = y1 - 1 + overscan; j >= y0 - overscan; j--) {
             Polygon line = new Polygon();
-            int x = b, y = b;
+            int x = b, y;
             for (int i = 0; i < sx; i++) {
                 // Scale points to screen space for rendering
                 double p = points[i][j];

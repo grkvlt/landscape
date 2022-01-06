@@ -30,7 +30,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -38,7 +37,7 @@ import java.util.Objects;
  * Fullscreen mode display.
  */
 public class Screen {
-    private List<GraphicsDevice> devices = Collections.emptyList();
+    private List<GraphicsDevice> devices;
     private GraphicsDevice gd;
     private Frame root;
     private Window screen;
@@ -51,7 +50,7 @@ public class Screen {
     public int monitors() { return devices.size(); }
 
     public Graphics2D fullscreen(int monitor) {
-        Objects.checkIndex(monitor, devices.size());
+        Objects.checkIndex(monitor, monitors());
 
         gd = devices.get(monitor);
 
@@ -64,8 +63,7 @@ public class Screen {
         screen.enableInputMethods(false);
         gd.setFullScreenWindow(screen);
     
-        Graphics2D g = (Graphics2D) screen.getGraphics();
-        return g;
+        return (Graphics2D) screen.getGraphics();
     }
 
     public void display(Graphics2D g, BufferedImage image) {
@@ -77,7 +75,7 @@ public class Screen {
         AffineTransform transform = new AffineTransform();
         float scale = (float) width / (float) image.getWidth();
         if ((int) (image.getHeight() * scale) > height) {
-            scale *= (float) height / (float) (image.getHeight() * scale);
+            scale *= (float) height / (image.getHeight() * scale);
         }
         transform.scale(scale, scale);
 

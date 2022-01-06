@@ -25,8 +25,7 @@ import static landscape.Utils.RANDOM;
 /**
  * Fractal Landscape Generator.
  *
- * Generates random fractal landscapes, with various
- * tuneable parameters, such as roughness and sea-level.
+ * Generates random fractal landscapes, with various tunable parameters, such as roughness and sea-level.
  */
 public class Fractal {
     public int iterations;
@@ -38,9 +37,9 @@ public class Fractal {
     /**
      * Generate a fractal landscape from initial array of zero height.
      */
-    public double[][] generate(double roughness, int w, int h) throws Exception {
+    public double[][] generate(double roughness, int w, int h) {
         int i = 0;
-        double points[][] = new double[w][h];
+        double[][] points = new double[w][h];
         while (i < iterations) {
             points = interpolate(points, roughness, ++i);
         }
@@ -55,7 +54,7 @@ public class Fractal {
         int iy = input[0].length;
         int ox = (ix - 1) * 2 + 1;
         int oy = (iy - 1) * 2 + 1;
-        double output[][] = new double[ox][oy];
+        double[][] output = new double[ox][oy];
 
         for (int x = 0; x < ix; x++) {
             for (int y = 0; y < iy; y++) {
@@ -86,7 +85,7 @@ public class Fractal {
     public double[][] differentiate(double[][] input) {
         int ix = input.length;
         int iy = input[0].length;
-        double output[][] = new double[ix][iy];
+        double[][] output = new double[ix][iy];
 
         for (int x = 0; x < ix; x++) {
             for (int y = 0; y < iy; y++) {
@@ -109,10 +108,8 @@ public class Fractal {
      * Apply smoothing filter iteratively.
      */
     public double[][] smooth(double[][] heights, double[][] gradient, double threshold, int iterations) {
-        int ix = heights.length;
-        int iy = heights[0].length;
-        double output[][] = new double[ix][iy];
-        double input[][] = heights;
+        double[][] output;
+        double[][] input = heights;
         int n = iterations;
 
         do {
@@ -129,7 +126,7 @@ public class Fractal {
     private double[][] filter(double[][] input, double[][] gradient, double threshold) {
         int ix = input.length;
         int iy = input[0].length;
-        double output[][] = new double[ix][iy];
+        double[][] output = new double[ix][iy];
 
         for (int x = 0; x < ix; x++) {
             for (int y = 0; y < iy; y++) {
