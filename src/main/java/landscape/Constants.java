@@ -46,14 +46,14 @@ public class Constants {
     // Image save formats
     public static final String PNG = "PNG", JPEG = "JPEG", TIFF = "TIFF";
     public static final Set<String> FILE_FORMATS = Set.of(PNG, JPEG, TIFF);
-    
-    /** Copyright text */
-    public static final String COPYRIGHT = "Copyright 2020-2021 by Andrew Donald Kennedy";
 
-    /** Version text */
-    public static final String VERSION = "Landscape 0.4";
+    /** Copyright text. */
+    public static final String COPYRIGHT = "Copyright 2020-2022 by Andrew Donald Kennedy";
 
-    /** About text */
+    /** Version text. */
+    public static final String VERSION = "Landscape 0.5-SNAPSHOT";
+
+    /** About text. */
     public static final String ABOUT = VERSION + " / " + COPYRIGHT;
 
     public static String fileFormat() {

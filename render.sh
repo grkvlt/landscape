@@ -2,7 +2,7 @@
 #
 # Render MP4 of Fractal Landscape Fly-Over
 #
-# Copyright 2020-2021 by Andrew Donald Kennedy
+# Copyright 2020-2022 by Andrew Donald Kennedy
 
 #set -x # DEBUG
 
@@ -12,7 +12,7 @@ DIR="${HOME}/Landscape"
 #RESOLUTION="1930x1200"
 RESOLUTION="1024x512"
 FPS="15"
-VERSION="0.4"
+VERSION="0.5-SNAPSHOT"
 
 # Create directory
 target="${DIR}/${NAME}"

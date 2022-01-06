@@ -1,5 +1,5 @@
-LANDSCAPE 0.4
-=============
+LANDSCAPE 0.5-SNAPSHOT
+======================
 
 > Fractal Landscape Generator  
 > Written in Java by [**@grkvlt**](https://twitter.com/grkvlt).
@@ -51,11 +51,11 @@ $ mvn clean install
 [INFO] Scanning for projects...
 [INFO] 
 [INFO] ------------< landscape:landscape >------------
-[INFO] Building Landscape 0.4
+[INFO] Building Landscape 0.5-SNAPSHOT
 ...
-$ java -jar ./target/landscape-0.4.jar 2.174
-+ Fractal landscape generator - Landscape 0.4
-+ Copyright 2020-2021 by Andrew Donald Kennedy
+$ java -jar ./target/landscape-0.5-SNAPSHOT.jar 2.174
++ Fractal landscape generator - Landscape 0.5-SNAPSHOT
++ Copyright 2020-2022 by Andrew Donald Kennedy
 - Using 2.174 roughness and water 0.125
 - Generating landscape over 6 iterations
 ...
@@ -128,5 +128,5 @@ for providing further inspiration.
 [2]: https://github.com/grkvlt/landscape/blob/master/src/main/java/landscape/Images.java#L58-L66
 
 ---
-Copyright 2020-2021 by Andrew Donald Kennedy;  
+Copyright 2020-2022 by Andrew Donald Kennedy;
 Licensed as [APACHE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
