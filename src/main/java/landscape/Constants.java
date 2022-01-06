@@ -34,6 +34,7 @@ public class Constants {
     public static final String SAVE_DIR_KEY = "landscape.save.dir";
     public static final String FILE_FORMAT_KEY = "landscape.save.format";
     public static final String SAVE_ALL_KEY = "images.save.all";
+    public static final String COLOR_KEY = "images.color";
     public static final String DISPLAY_FRAMES_KEY = "flyover.display";
 
     /** Default save directory name. */

@@ -21,6 +21,7 @@
 package landscape;
 
 import static landscape.Utils.RANDOM;
+import static landscape.Utils.color;
 
 import java.awt.Color;
 import java.awt.BasicStroke;
@@ -38,6 +39,8 @@ import java.awt.image.BufferedImage;
 public class Renderer {
     private boolean jitter;
     private int overscan;
+    private Color background = Color.BLACK;
+    private Color foreground = Color.WHITE;
 
     public Renderer() {
         this(true, 0);
@@ -46,6 +49,20 @@ public class Renderer {
     public Renderer(boolean jitter, int overscan) {
         this.jitter = jitter;
         this.overscan = overscan;
+    }
+
+    /**
+     * Set the background {@link Color colour} for the image.
+     */
+    public void setBackground(Color background) {
+        this.background = background;
+    }
+
+    /**
+     * Set the foreground {@link Color colour} for the image.
+     */
+    public void setForeground(Color foreground) {
+        this.foreground = foreground;
     }
 
     /**
@@ -72,8 +89,8 @@ public class Renderer {
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
         // Define the background colour and stroke format
-        g.setBackground(Color.BLACK);
-        g.setStroke(new BasicStroke(2.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
+        g.setBackground(background);
+        g.setStroke(new BasicStroke(3.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
 
         // Clear the image
         g.clearRect(0, 0, w, h);
@@ -93,12 +110,12 @@ public class Renderer {
             // Add extra points to the fill polygon for full z clipping
             line.addPoint(x, b + (int) (scale * sy));
             line.addPoint(b, b + (int) (scale * sy));
-            g.setColor(Color.BLACK);
+            g.setColor(background);
             g.setClip(0, 0, w, h - b);
             g.fillPolygon(line);
 
             // Draw the landscape outline (without added points from above)
-            g.setColor(Color.WHITE);
+            g.setColor(foreground);
             g.setClip(0, 0, w, Math.min(h - b, b + (int) (scale * (y1 - j)) + (int) (z * water)) - 1);
             g.drawPolyline(line.xpoints, line.ypoints, line.npoints - 2);
         }
@@ -122,7 +139,7 @@ public class Renderer {
         Graphics2D g = image.createGraphics();
 
         // Define the background colour
-        g.setBackground(Color.BLACK);
+        g.setBackground(background);
 
         // Clear the image
         g.clearRect(0, 0, w, h);
@@ -132,7 +149,7 @@ public class Renderer {
             for (int i = 0; i < sx; i++) {
                 double p = points[i][j];
                 double q = Math.abs(gradient[i][j] * 100d);
-                int c = Math.min(255, (int) (q * 255d));
+                double c = Math.min(100d, q * 100d) / 100d;
                 x = (int) (scale * i);
                 y = (int) (scale * (sy - j));
                 if (p < water) {
@@ -146,9 +163,9 @@ public class Renderer {
 
                     // Plot pixel
                     if (q < threshold) {
-                        g.setColor(Utils.color(0, c, c / 2));
+                        g.setColor(color(0, (int) (foreground.getGreen() * c), (int) (foreground.getBlue() * c) / 2));
                     } else {
-                        g.setColor(Utils.color(c, c, c));
+                        g.setColor(color((int) (foreground.getRed() * c), (int) (foreground.getGreen() * c), (int) (foreground.getBlue() * c)));
                     }
                     g.fillArc(x - s, y - s, s * 3, s * 3, 0, 360);
                 }

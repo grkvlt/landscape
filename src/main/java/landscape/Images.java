@@ -20,15 +20,18 @@
  */
 package landscape;
 
+import static landscape.Constants.COLOR_KEY;
 import static landscape.Constants.fileFormat;
 import static landscape.Constants.SAVE_ALL_KEY;
 import static landscape.Utils.propertyFlag;
 import static landscape.Utils.setApplicationIcon;
 import static landscape.Utils.saveDir;
 import static landscape.Utils.save;
+import static landscape.Utils.color;
 import static landscape.Utils.RANDOM;
 
 import java.awt.image.BufferedImage;
+import java.awt.Color;
 
 /**
  * Generates images of multiple fractal landscapes.
@@ -37,6 +40,7 @@ public class Images implements Runnable {
     private String prefix = "fractal";
     private int n = 10; // Number of images
     private boolean saveAll = propertyFlag(SAVE_ALL_KEY, false);
+    private boolean color = propertyFlag(COLOR_KEY, false);
 
     private int z = 600; // Z-axis height
     private int b = 0; // Border width
@@ -68,6 +72,18 @@ public class Images implements Runnable {
         System.out.printf("- Using %.3f roughness and water %.3f\n", r, water);
 
         do {
+            if (color) {
+                int red = RANDOM.nextInt(32);
+                int green = RANDOM.nextInt(32);
+                int blue = RANDOM.nextInt(32);
+                Color background = color(10 + red, 10 + green, 10 + blue);
+                Color foreground = color(250 - red, 250 - green, 250 - blue);
+                render.setBackground(background);
+                render.setForeground(foreground);
+                System.out.printf("- Setting landscape colour to #%2x%2x%2x\n",
+                        background.getRed(), background.getGreen(), background.getBlue());
+            }
+
             // Generate height map
             System.out.printf("- Generating landscape over %d iterations\n", gi);
             double[][] points = landscape.generate(r, w, h);
